@@ -1,0 +1,268 @@
+// AfriFound Database Schema
+// Using Prisma with Neon PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+  
+// User model - supports both founders and investors
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  avatar        String?
+  role          UserRole  @default(FOUNDER)
+  bio           String?
+  location      String?
+  country       String?
+  website       String?
+  linkedin      String?
+  twitter       String?
+  skills        String[]
+  interests     String[]
+  
+  // Investor specific fields
+  investmentFocus   String[]
+  portfolioSize     String?
+  investmentRange   String?
+  
+  // Founder specific fields
+  company           String?
+  companyRole       String?
+  
+  // Settings
+  emailNotifications    Boolean @default(true)
+  pushNotifications     Boolean @default(true)
+  weeklyDigest          Boolean @default(true)
+  profileVisibility     String  @default("public")
+  showEmail             Boolean @default(false)
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  
+  // Relations
+  ideas               Idea[]
+  likes               Like[]
+  saves               Save[]
+  comments            Comment[]
+  sentMessages        Message[]       @relation("SentMessages")
+  receivedMessages    Message[]       @relation("ReceivedMessages")
+  conversations       ConversationParticipant[]
+  notifications       Notification[]
+  sessions            Session[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  FOUNDER
+  INVESTOR
+  DEVELOPER
+  MENTOR
+}
+
+// Session model for JWT refresh tokens
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// Idea/Startup model
+model Idea {
+  id              String      @id @default(cuid())
+  title           String
+  tagline         String
+  problem         String
+  solution        String
+  description     String?
+  industry        String
+  country         String
+  stage           IdeaStage   @default(IDEA)
+  fundingGoal     Float?
+  fundingRaised   Float       @default(0)
+  equity          Float?
+  teamSize        Int         @default(1)
+  tags            String[]
+  coverImage      String?
+  pitchDeck       String?
+  website         String?
+  
+  // Metrics
+  views           Int         @default(0)
+  
+  // Status
+  status          IdeaStatus  @default(DRAFT)
+  featured        Boolean     @default(false)
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  publishedAt     DateTime?
+  
+  // Relations
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes           Like[]
+  saves           Save[]
+  comments        Comment[]
+  
+  @@index([userId])
+  @@index([industry])
+  @@index([country])
+  @@index([stage])
+  @@index([status])
+  @@index([featured])
+  @@index([createdAt])
+}
+
+enum IdeaStage {
+  IDEA
+  MVP
+  EARLY_TRACTION
+  GROWTH
+  SCALING
+}
+
+enum IdeaStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Like model
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  ideaId    String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, ideaId])
+  @@index([ideaId])
+}
+
+// Save/Bookmark model
+model Save {
+  id        String   @id @default(cuid())
+  userId    String
+  ideaId    String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, ideaId])
+  @@index([ideaId])
+}
+
+// Comment model
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  ideaId    String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  
+  @@index([ideaId])
+  @@index([userId])
+}
+
+// Conversation model for messaging
+model Conversation {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  participants  ConversationParticipant[]
+  messages      Message[]
+  
+  @@index([updatedAt])
+}
+
+model ConversationParticipant {
+  id              String       @id @default(cuid())
+  userId          String
+  conversationId  String
+  lastReadAt      DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, conversationId])
+  @@index([conversationId])
+}
+
+// Message model
+model Message {
+  id              String       @id @default(cuid())
+  content         String
+  senderId        String
+  receiverId      String
+  conversationId  String
+  read            Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  
+  sender          User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver        User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+// Notification model
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  data      Json?
+  userId    String
+  createdAt DateTime         @default(now())
+  
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  SAVE
+  MESSAGE
+  FOLLOW
+  INVESTMENT_INTEREST
+  SYSTEM
+}
