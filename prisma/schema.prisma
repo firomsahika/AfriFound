@@ -88,18 +88,23 @@ model Session {
 model Idea {
   id              String      @id @default(cuid())
   title           String
-  tagline         String
   problem         String
   solution        String
-  description     String?
   industry        String
   country         String
+  market          String      // Added this field
+  impact          String?     // Added this field (optional)
+  traction        String?     // Added this field (optional)
+  
+  // These are now optional (?) so Prisma won't complain if they are missing
+  tagline         String?     
+  description     String?
   stage           IdeaStage   @default(IDEA)
   fundingGoal     Float?
   fundingRaised   Float       @default(0)
   equity          Float?
   teamSize        Int         @default(1)
-  tags            String[]
+  tags            String[]    // Arrays are implicitly optional (can be empty)
   coverImage      String?
   pitchDeck       String?
   website         String?

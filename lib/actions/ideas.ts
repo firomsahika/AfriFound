@@ -13,30 +13,18 @@ export async function createIdea(formData: FormData) {
     return { success: false, error: "You must be logged in to create an idea" };
   }
 
- 
 
-  const rawData = {
-    title: formData.get("title") as string,
-    // tagline: formData.get("tagline") as string,
-    problem: formData.get("problem") as string,
-    solution: formData.get("solution") as string,
-    // description: (formData.get("description") as string) || undefined,
-    industry: formData.get("industry") as string,
-    country: formData.get("country") as string,
-    stage: formData.get("stage") as IdeaStage,
-    impact: formData.get("impact") as string,
-    traction: formData.get("traction") as string,
-    market: formData.get("market") as string
-    // fundingGoal: formData.get("fundingGoal")
-    //   ? Number(formData.get("fundingGoal"))
-    //   : undefined
-    // equity: formData.get("equity") ? Number(formData.get("equity")) : undefined,
-    // teamSize: Number(formData.get("teamSize")) || 1,
-    // tags: JSON.parse((formData.get("tags") as string) || "[]"),
-    // coverImage: (formData.get("coverImage") as string) || "",
-    // pitchDeck: (formData.get("pitchDeck") as string) || "",
-    // website: (formData.get("website") as string) || "",
-    // status: (formData.get("status") as IdeaStatus) || "DRAFT",
+
+ const rawData = {
+    title: formData.get("title"),
+    industry: formData.get("industry"),
+    stage: formData.get("stage"),
+    country: formData.get("country"),
+    problem: formData.get("problem"),
+    solution: formData.get("solution"),
+    market: formData.get("market"),
+    impact: formData.get("impact"),
+    traction: formData.get("traction"),
   };
 
   const validated = ideaSchema.safeParse(rawData);
@@ -49,7 +37,7 @@ export async function createIdea(formData: FormData) {
     data: {
       ...validated.data,
       userId: user.id,
-      publishedAt: validated.data.status === "PUBLISHED" ? new Date() : null,
+      publishedAt: new Date,
     },
   });
 

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import {IdeaStage} from "@prisma/client"
+
 
 export const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -18,22 +20,18 @@ export const loginSchema = z.object({
 });
 
 export const ideaSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
-  tagline: z.string().min(10, "Tagline must be at least 10 characters").max(200, "Tagline must be less than 200 characters"),
-  problem: z.string().min(20, "Problem must be at least 20 characters"),
-  solution: z.string().min(20, "Solution must be at least 20 characters"),
-  description: z.string().optional(),
+  title: z.string()
+    .min(5, "Title must be at least 5 characters")
+    .max(100, "Title must be less than 100 characters"),
   industry: z.string().min(1, "Industry is required"),
+  stage: z.nativeEnum(IdeaStage),
   country: z.string().min(1, "Country is required"),
-  stage: z.enum(["IDEA", "MVP", "EARLY_TRACTION", "GROWTH", "SCALING"]),
-  fundingGoal: z.number().positive().optional(),
-  equity: z.number().min(0).max(100).optional(),
-  teamSize: z.number().int().positive().default(1),
-  tags: z.array(z.string()).max(5, "Maximum 5 tags allowed"),
-  coverImage: z.string().url().optional().or(z.literal("")),
-  pitchDeck: z.string().url().optional().or(z.literal("")),
-  website: z.string().url().optional().or(z.literal("")),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  problem: z.string().min(50, "Problem must be at least 50 characters"),
+  solution: z.string().min(50, "Solution must be at least 50 characters"),
+  market: z.string().min(30, "Market description must be at least 30 characters"),
+  impact: z.string().optional(),
+  traction: z.string().optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("PUBLISHED"),
 });
 
 export const profileSchema = z.object({
