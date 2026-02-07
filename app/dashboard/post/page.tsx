@@ -5,6 +5,8 @@ import { ArrowLeft, ArrowRight, Lightbulb, Target, Wrench, Globe, MapPin, Eye } 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { createIdea } from "@/lib/actions/ideas"
+import { useRouter } from "next/router"
 
 const steps = [
   { id: 1, name: "Basics", icon: Lightbulb },
@@ -39,6 +41,9 @@ interface FormData {
 }
 
 export default function PostIdeaPage() {
+  const router = useRouter();
+  const[loading , setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -73,10 +78,28 @@ export default function PostIdeaPage() {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // In a real app, this would submit to an API
-    alert("Idea submitted successfully! Redirecting to dashboard...")
-  }
+    setLoading(true);
+    setError("");
+    const result = await createIdea(formData);
+
+     if (!result.success) {
+        setError(result.error || "Something went wrong");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      setError("");
+
+      router.push("/dashboard");
+      router.refresh();
+
+  }  }
+
+
+￼
 
   return (
     <div className="min-h-full bg-background">

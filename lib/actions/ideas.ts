@@ -13,25 +13,30 @@ export async function createIdea(formData: FormData) {
     return { success: false, error: "You must be logged in to create an idea" };
   }
 
+ 
+
   const rawData = {
     title: formData.get("title") as string,
-    tagline: formData.get("tagline") as string,
+    // tagline: formData.get("tagline") as string,
     problem: formData.get("problem") as string,
     solution: formData.get("solution") as string,
-    description: (formData.get("description") as string) || undefined,
+    // description: (formData.get("description") as string) || undefined,
     industry: formData.get("industry") as string,
     country: formData.get("country") as string,
     stage: formData.get("stage") as IdeaStage,
-    fundingGoal: formData.get("fundingGoal")
-      ? Number(formData.get("fundingGoal"))
-      : undefined,
-    equity: formData.get("equity") ? Number(formData.get("equity")) : undefined,
-    teamSize: Number(formData.get("teamSize")) || 1,
-    tags: JSON.parse((formData.get("tags") as string) || "[]"),
-    coverImage: (formData.get("coverImage") as string) || "",
-    pitchDeck: (formData.get("pitchDeck") as string) || "",
-    website: (formData.get("website") as string) || "",
-    status: (formData.get("status") as IdeaStatus) || "DRAFT",
+    impact: formData.get("impact") as string,
+    traction: formData.get("traction") as string,
+    market: formData.get("market") as string
+    // fundingGoal: formData.get("fundingGoal")
+    //   ? Number(formData.get("fundingGoal"))
+    //   : undefined
+    // equity: formData.get("equity") ? Number(formData.get("equity")) : undefined,
+    // teamSize: Number(formData.get("teamSize")) || 1,
+    // tags: JSON.parse((formData.get("tags") as string) || "[]"),
+    // coverImage: (formData.get("coverImage") as string) || "",
+    // pitchDeck: (formData.get("pitchDeck") as string) || "",
+    // website: (formData.get("website") as string) || "",
+    // status: (formData.get("status") as IdeaStatus) || "DRAFT",
   };
 
   const validated = ideaSchema.safeParse(rawData);
@@ -53,6 +58,7 @@ export async function createIdea(formData: FormData) {
 
   return { success: true, data: idea };
 }
+
 
 export async function updateIdea(ideaId: string, formData: FormData) {
   const user = await getCurrentUser();
@@ -112,6 +118,7 @@ export async function updateIdea(ideaId: string, formData: FormData) {
 
   return { success: true, data: idea };
 }
+
 
 export async function deleteIdea(ideaId: string) {
   const user = await getCurrentUser();
@@ -180,7 +187,7 @@ export async function getIdeas(filters: IdeaFilters = {}, page = 1, pageSize = 1
   if (filters.sort === "trending") {
     orderBy = { views: "desc" };
   } else if (filters.sort === "hot") {
-    orderBy = { likes: { _count: "desc" } };
+    orderBy = { likesCount: "desc" }; // assumes you have a likesCount field in your model
   }
 
   const [ideas, total] = await Promise.all([
@@ -421,7 +428,7 @@ export async function getSavedIdeas(page = 1, pageSize = 10) {
   const user = await getCurrentUser();
 
   if (!user) {
-    return { items: [], total: 0, , pageSize, totalPages: 0 };
+    return { items: [], total: 0, pageSize, totalPages: 0 };
   }
 
   const skip = (page - 1) * pageSize;
