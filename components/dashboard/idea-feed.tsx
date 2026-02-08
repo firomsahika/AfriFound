@@ -82,7 +82,7 @@ export function IdeaFeed({ currentUserId }: IdeaFeedProps) {
       {/* Main Feed */}
       <div className="flex-1 overflow-auto">
         {/* Search & Filters */}
-        <div className="sticky top-0 z-10 border-b border-border bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="sticky top-0 z-10 border-b border-border bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/90">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
